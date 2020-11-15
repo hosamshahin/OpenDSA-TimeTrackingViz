@@ -23,12 +23,17 @@ $(function () {
       var plotlyBoxDiv = $("#plotlyBoxDiv")[0]
 
       var dataTables = null;
+      var lineDataTables = null;
       var currentBoxTab = 'weeks';
       var currentLineTab = 'weeks';
       var currentLinePercentile = '25';
 
-      function createDataTables(chosenStudentsInfo, caption) {
+      function createDataTables(chosenStudentsInfo, caption, plot) {
+        var plot = plot || "box"
         var caption = caption || ""
+        var $students_caption = (plot === "box") ? $(".students_caption") : $(".students_caption_line")
+        var $students_info = (plot === "box") ? $(".students_info") : $(".students_info_line")
+
         if ($(".students_caption").length) {
           $(".students_caption").text(caption);
         } else {
@@ -495,9 +500,8 @@ $(function () {
         $(this).on('change', update);
       });
 
-      function updateLinePlot(chosenStudents, stepLabel) {
+      function updateLinePlot(chosenStudents) {
         var chosenStudents = chosenStudents || []
-        var stepLabel = stepLabel || null
         var plotlyLineData = []
 
         for (var i = 0; i < chosenStudents.length; i++) {
@@ -517,13 +521,6 @@ $(function () {
         };
         addClassStats(plotlyLineData, currentLineTab)
 
-        if (stepLabel && stepLabel === "Off") {
-          plotlyLineLayout.sliders[0].currentvalue.prefix = ""
-          plotlyLineLayout.sliders[0].currentvalue.suffix = ""
-        } else {
-          plotlyLineLayout.sliders[0].currentvalue.prefix = "Students with ("
-          plotlyLineLayout.sliders[0].currentvalue.suffix = ") point(s) below median."
-        }
         var range = []
         if (currentLineTab === 'weeks') {
           range = [weeksDates[0], weeksDates[weeksDates.length - 1]]
@@ -697,7 +694,8 @@ $(function () {
       belowQuartileObj['chapters'] = getBelowQuartile('median', 'chapters')
 
       function calculateSteps(quartile, unit) {
-        var belowQuartileSteps = Object.keys(belowQuartileObj[unit]).sort(Plotly.d3.descending)
+        var belowQuartileSteps = Object.keys(belowQuartileObj[unit]).map(function (x) { return parseInt(x, 10) })
+        belowQuartileSteps.sort(Plotly.d3.descending)
 
         // calculate steps
         var steps = []
@@ -823,14 +821,15 @@ $(function () {
         selectize_line.clear()
         var stepLabel = e.step.label
         var chosenStudents = [];
-        var selectedStudents = (Object.keys(belowQuartileObj[currentLineTab]).includes(stepLabel)) ? belowQuartileObj[currentLineTab][stepLabel] : [];
+        var selectedStudents = (Object.keys(belowQuartileObj[currentLineTab]).includes(stepLabel)) ?
+          belowQuartileObj[currentLineTab][stepLabel] : [];
         if (selectedStudents) {
           for (var i = 0; i < selectedStudents.length; i++) {
             chosenStudents.push(studentsInfoIndex[selectedStudents[i]]);
           }
         }
 
-        updateLinePlot(chosenStudents, stepLabel)
+        updateLinePlot(chosenStudents)
       })
 
       // event handler to select points and show dataTables
