@@ -521,18 +521,12 @@ $(function () {
         };
         addClassStats(plotlyLineData, currentLineTab)
 
-        var range = []
-        if (currentLineTab === 'weeks') {
-          range = [weeksDates[0], weeksDates[weeksDates.length - 1]]
-          plotlyLineLayout.xaxis.range = range
-          plotlyLineLayout.xaxis.rangeslider.range = range
-          plotlyLineLayout.sliders[0].steps = calculateSteps("median", "weeks")
-        } else {
-          range = [chaptersDates[0], chaptersDates[chaptersDates.length - 1]]
-          plotlyLineLayout.xaxis.range = range
-          plotlyLineLayout.xaxis.rangeslider.range = range
-          plotlyLineLayout.sliders[0].steps = calculateSteps("median", "chapters")
-        }
+        var range = (currentLineTab === 'weeks') ?
+          [weeksDates[0], weeksDates[weeksDates.length - 1]] :
+          [chaptersDates[0], chaptersDates[chaptersDates.length - 1]];
+        plotlyLineLayout.xaxis.range = range
+        plotlyLineLayout.xaxis.rangeslider.range = range
+        plotlyLineLayout.sliders[0].steps = calculateSteps("median", currentLineTab)
 
         Plotly.react(plotlyLineDiv, plotlyLineData, plotlyLineLayout)
       };
@@ -796,7 +790,7 @@ $(function () {
           currentvalue: {
             xanchor: "left",
             prefix: "Students with (",
-            suffix: ") point(s) below median.",
+            suffix: ") week(s) below class median.",
             font: {
               color: "#888",
               size: 20
@@ -829,6 +823,7 @@ $(function () {
           }
         }
 
+        plotlyLineLayout.sliders[0].currentvalue.suffix = (currentLineTab === 'weeks') ? ") week(s) below class median." : ") chapter(s) below class median."
         updateLinePlot(chosenStudents)
       })
 
@@ -839,6 +834,8 @@ $(function () {
 
         if (['weeks', 'chapters'].includes(buttonName)) {
           currentLineTab = buttonName;
+          plotlyLineLayout.sliders[0].active = 0
+          plotlyLineLayout.sliders[0].currentvalue.suffix = (currentLineTab === 'weeks') ? ") week(s) below class median." : ") chapter(s) below class median.";
           updateLinePlot()
         }
       })
